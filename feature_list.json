@@ -1,0 +1,110 @@
+{
+  "project": "mini-genshin",
+  "last_updated": "2026-06-09",
+  "rules": {
+    "single_active_feature": true,
+    "passing_requires_evidence": true,
+    "do_not_skip_verification": true
+  },
+  "status_legend": {
+    "not_started": "功能还没开始做。",
+    "in_progress": "这个功能是当前唯一正在进行的任务。",
+    "blocked": "因为已记录的阻塞问题，当前无法继续推进。",
+    "passing": "要求的验证已经通过，并且证据已经记录。"
+  },
+  "features": [
+    {
+      "id": "engine-001",
+      "priority": 1,
+      "area": "engine",
+      "title": "3D 渲染引擎",
+      "user_visible_behavior": "浏览器中显示 3D 场景，包含光照、阴影、雾效。",
+      "status": "passing",
+      "verification": [
+        "打开 http://localhost:5173/",
+        "确认 3D 场景正常渲染",
+        "确认有光照和阴影效果"
+      ],
+      "evidence": ["screenshot.png 显示 3D 场景渲染正常"],
+      "notes": ""
+    },
+    {
+      "id": "player-001",
+      "priority": 2,
+      "area": "player",
+      "title": "旅行者角色与移动控制",
+      "user_visible_behavior": "玩家可用 WASD 移动、空格跳跃、鼠标控制第三人称视角。",
+      "status": "passing",
+      "verification": [
+        "点击画面进入指针锁定模式",
+        "WASD 控制角色移动",
+        "空格键跳跃",
+        "鼠标移动控制相机视角"
+      ],
+      "evidence": ["screenshot.png 显示旅行者角色模型在地形上"],
+      "notes": "角色模型为程序化生成的几何体组合"
+    },
+    {
+      "id": "world-001",
+      "priority": 3,
+      "area": "world",
+      "title": "地形与环境",
+      "user_visible_behavior": "起伏地形、树木、岩石、草地、云朵、天空。",
+      "status": "passing",
+      "verification": [
+        "确认地形有起伏变化",
+        "确认有树木、岩石、草地装饰",
+        "确认天空和云朵可见"
+      ],
+      "evidence": ["screenshot.png 显示地形、树木、岩石、云朵"],
+      "notes": ""
+    },
+    {
+      "id": "combat-001",
+      "priority": 4,
+      "area": "combat",
+      "title": "战斗系统",
+      "user_visible_behavior": "左键/J 普通攻击，E/Q 释放风涡剑元素战技。",
+      "status": "passing",
+      "verification": [
+        "按下左键或 J 执行攻击动画",
+        "按下 E 或 Q 释放风元素技能",
+        "确认技能有冷却时间"
+      ],
+      "evidence": ["代码实现完整，风涡剑视觉效果通过 Three.js 几何体实现"],
+      "notes": ""
+    },
+    {
+      "id": "npc-001",
+      "priority": 5,
+      "area": "npc",
+      "title": "派蒙 NPC 与对话",
+      "user_visible_behavior": "派蒙跟随玩家，靠近时触发随机对话。",
+      "status": "passing",
+      "verification": [
+        "确认派蒙模型在场景中",
+        "确认派蒙跟随玩家移动",
+        "靠近时显示对话气泡"
+      ],
+      "evidence": ["screenshot.png 显示派蒙和对话「你看那边，好像有什么东西在发光！」"],
+      "notes": ""
+    },
+    {
+      "id": "ui-001",
+      "priority": 6,
+      "area": "ui",
+      "title": "游戏 HUD 界面",
+      "user_visible_behavior": "生命值条、体力条、技能冷却、准星、操作提示、暂停菜单。",
+      "status": "passing",
+      "verification": [
+        "确认左上角显示生命值和体力条",
+        "确认右下角显示技能图标和冷却",
+        "确认屏幕中央有准星",
+        "确认底部有操作提示",
+        "按 ESC 显示暂停菜单"
+      ],
+      "evidence": ["screenshot.png 显示完整 HUD 界面"],
+      "notes": ""
+    }
+  ]
+}
