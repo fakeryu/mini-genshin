@@ -112,6 +112,22 @@ export class PlayerModel {
         this.rightArm.rotation.z = -Math.sin(t * 10) * 0.5 - 1;
         break;
       }
+      case 'sprint': {
+        const legSwing = Math.sin(t * 12) * 0.6;
+        this.leftLeg.rotation.x = legSwing;
+        this.rightLeg.rotation.x = -legSwing;
+        this.leftArm.rotation.x = -legSwing * 0.7;
+        this.rightArm.rotation.x = legSwing * 0.7;
+        this.mesh.position.y = Math.abs(Math.sin(t * 24)) * 0.08;
+        this.sword.rotation.z = -0.5;
+        break;
+      }
+      case 'burst': {
+        this.leftArm.rotation.z = 1.5 + Math.sin(t * 15) * 0.3;
+        this.rightArm.rotation.z = -1.5 - Math.sin(t * 15) * 0.3;
+        this.sword.rotation.z = Math.sin(t * 10) * 0.5;
+        break;
+      }
       default: {
         this.leftLeg.rotation.x *= 0.9;
         this.rightLeg.rotation.x *= 0.9;

@@ -18,9 +18,14 @@ export class Player {
   maxHealth = 100;
   stamina = 100;
   maxStamina = 100;
+  staminaRegen = 30;
+  sprinting = false;
+  sprintSpeed = 16;
+  normalSpeed = 8;
   attacking = false;
   attackTimer = 0;
   skillCooldown = 0;
+  burstCooldown = 0;
   scene: THREE.Scene;
   input: InputManager;
   terrain: Terrain;
@@ -37,6 +42,12 @@ export class Player {
 
   update(dt: number) {
     if (this.skillCooldown > 0) this.skillCooldown -= dt;
+    if (this.burstCooldown > 0) this.burstCooldown -= dt;
+
+    // stamina regen when not sprinting
+    if (!this.sprinting && this.stamina < this.maxStamina) {
+      this.stamina = Math.min(this.maxStamina, this.stamina + this.staminaRegen * dt);
+    }
 
     this.handleMovement(dt);
     this.handleCombat(dt);
@@ -51,6 +62,17 @@ export class Player {
 
     const forward = this.input.isDown('KeyW') ? 1 : this.input.isDown('KeyS') ? -1 : 0;
     const right = this.input.isDown('KeyD') ? 1 : this.input.isDown('KeyA') ? -1 : 0;
+    const shiftDown = this.input.isDown('ShiftLeft') || this.input.isDown('ShiftRight');
+
+    // Sprint logic
+    this.sprinting = false;
+    if (shiftDown && (forward !== 0 || right !== 0) && this.stamina > 0) {
+      this.sprinting = true;
+      this.speed = this.sprintSpeed;
+      this.stamina = Math.max(0, this.stamina - 25 * dt);
+    } else {
+      this.speed = this.normalSpeed;
+    }
 
     if (forward !== 0 || right !== 0) {
       const moveAngle = Math.atan2(right, -forward) + this.cameraYaw;
@@ -58,7 +80,7 @@ export class Player {
       this.rotation = -moveAngle;
       this.position.x += Math.sin(moveAngle) * this.speed * dt;
       this.position.z += Math.cos(moveAngle) * this.speed * dt;
-      this.model.setAnimation('walk');
+      this.model.setAnimation(this.sprinting ? 'sprint' : 'walk');
     } else {
       this.model.setAnimation('idle');
     }
@@ -85,10 +107,18 @@ export class Player {
       this.model.setAnimation('attack');
     }
 
-    if ((this.input.isDown('KeyE') || this.input.isDown('KeyQ')) && this.skillCooldown <= 0) {
+    // E: Elemental Skill
+    if (this.input.isDown('KeyE') && this.skillCooldown <= 0) {
       this.skillCooldown = 5;
       this.model.setAnimation('skill');
       this.createWindBlade();
+    }
+
+    // Q: Elemental Burst
+    if (this.input.isDown('KeyQ') && this.burstCooldown <= 0) {
+      this.burstCooldown = 12;
+      this.model.setAnimation('burst');
+      this.createTornado();
     }
   }
 
@@ -113,7 +143,6 @@ export class Player {
     blade.rotation.y = -this.rotation;
     this.scene.add(blade);
 
-    const startPos = blade.position.clone();
     const speed = 20;
     let life = 0;
 
@@ -129,6 +158,80 @@ export class Player {
         this.scene.remove(blade);
         geometry.dispose();
         material.dispose();
+      }
+    };
+    animate();
+  }
+
+  createTornado() {
+    // Create a swirling tornado effect
+    const group = new THREE.Group();
+    group.position.copy(this.position);
+    group.position.y += 0.5;
+    this.scene.add(group);
+
+    // Main funnel
+    const funnelGeo = new THREE.ConeGeometry(1.5, 6, 16, 1, true);
+    const funnelMat = new THREE.MeshBasicMaterial({
+      color: 0x40e0d0,
+      transparent: true,
+      opacity: 0.3,
+      side: THREE.DoubleSide,
+    });
+    const funnel = new THREE.Mesh(funnelGeo, funnelMat);
+    funnel.position.y = 3;
+    group.add(funnel);
+
+    // Inner spiral particles
+    const particleCount = 30;
+    const particles: THREE.Mesh[] = [];
+    for (let i = 0; i < particleCount; i++) {
+      const size = 0.1 + Math.random() * 0.3;
+      const pGeo = new THREE.SphereGeometry(size, 4, 4);
+      const pMat = new THREE.MeshBasicMaterial({
+        color: Math.random() > 0.5 ? 0x40e0d0 : 0x80f0e0,
+        transparent: true,
+        opacity: 0.6,
+      });
+      const p = new THREE.Mesh(pGeo, pMat);
+      particles.push(p);
+      group.add(p);
+    }
+
+    let life = 0;
+    const duration = 3;
+
+    const animate = () => {
+      life += 0.016;
+      const t = life / duration;
+
+      // Rotate funnel
+      funnel.rotation.y -= 0.15;
+      funnel.scale.setScalar(1 + Math.sin(life * 3) * 0.2);
+      funnelMat.opacity = 0.3 * (1 - t);
+
+      // Animate particles in spiral
+      for (let i = 0; i < particles.length; i++) {
+        const p = particles[i];
+        const angle = life * 5 + (i / particleCount) * Math.PI * 2;
+        const radius = 1 + Math.sin(life * 2 + i) * 0.5;
+        const height = ((life * 3 + i * 0.3) % 6);
+        p.position.x = Math.cos(angle) * radius;
+        p.position.z = Math.sin(angle) * radius;
+        p.position.y = height;
+        (p.material as THREE.MeshBasicMaterial).opacity = 0.6 * (1 - t);
+      }
+
+      if (life < duration) {
+        requestAnimationFrame(animate);
+      } else {
+        this.scene.remove(group);
+        funnelGeo.dispose();
+        funnelMat.dispose();
+        particles.forEach(p => {
+          p.geometry.dispose();
+          (p.material as THREE.MeshBasicMaterial).dispose();
+        });
       }
     };
     animate();

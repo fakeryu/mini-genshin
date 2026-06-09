@@ -252,8 +252,40 @@ export class HUD {
       justify-content: center;
       font-size: 20px;
       position: relative;
+      overflow: hidden;
     `;
     burstIcon.textContent = '💨';
+
+    // Burst cooldown overlay
+    const burstCooldown = document.createElement('div');
+    burstCooldown.dataset.type = 'burst-cooldown';
+    burstCooldown.style.cssText = `
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.75);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      color: white;
+      font-weight: bold;
+    `;
+    burstIcon.appendChild(burstCooldown);
+
+    // Burst ready glow
+    const burstReady = document.createElement('div');
+    burstReady.dataset.type = 'burst-ready';
+    burstReady.style.cssText = `
+      position: absolute;
+      top: -3px; left: -3px;
+      width: calc(100% + 6px); height: calc(100% + 6px);
+      border-radius: 50%;
+      border: 2px solid rgba(64,224,208,0.6);
+      box-shadow: 0 0 8px rgba(64,224,208,0.4);
+      animation: skillPulse 1.5s ease-in-out infinite;
+      pointer-events: none;
+    `;
 
     const burstKey = document.createElement('div');
     burstKey.textContent = 'Q';
@@ -267,6 +299,7 @@ export class HUD {
     burstWrapper.appendChild(burstIcon);
     burstWrapper.appendChild(burstKey);
     bar.appendChild(burstWrapper);
+    bar.appendChild(burstReady);
 
     // Elemental Skill (E)
     const skillWrapper = document.createElement('div');
@@ -658,19 +691,43 @@ export class HUD {
 
     if (hpFill) hpFill.style.width = `${healthPct * 100}%`;
     if (hpText) hpText.textContent = `${Math.round(this.player.health)} / ${this.player.maxHealth}`;
-    if (staminaFill) staminaFill.style.width = `${staminaPct * 100}%`;
-
-    const cooldownOverlay = this.container.querySelector('[data-type="skill-cooldown"]') as HTMLDivElement;
-    const readyRing = this.container.querySelector('[data-type="skill-ready"]') as HTMLDivElement;
-
-    if (cooldownOverlay) {
-      if (this.player.skillCooldown > 0) {
-        cooldownOverlay.style.display = 'flex';
-        cooldownOverlay.textContent = Math.ceil(this.player.skillCooldown).toString();
-        if (readyRing) readyRing.style.display = 'none';
+    if (staminaFill) {
+      staminaFill.style.width = `${staminaPct * 100}%`;
+      // Change color when sprinting
+      if (this.player.sprinting) {
+        staminaFill.style.background = 'linear-gradient(90deg, #2980b9, #3498db)';
       } else {
-        cooldownOverlay.style.display = 'none';
-        if (readyRing) readyRing.style.display = 'block';
+        staminaFill.style.background = 'linear-gradient(90deg, #d68910, #f5b041)';
+      }
+    }
+
+    // Skill cooldown
+    const skillCooldown = this.container.querySelector('[data-type="skill-cooldown"]') as HTMLDivElement;
+    const skillReady = this.container.querySelector('[data-type="skill-ready"]') as HTMLDivElement;
+
+    if (skillCooldown) {
+      if (this.player.skillCooldown > 0) {
+        skillCooldown.style.display = 'flex';
+        skillCooldown.textContent = Math.ceil(this.player.skillCooldown).toString();
+        if (skillReady) skillReady.style.display = 'none';
+      } else {
+        skillCooldown.style.display = 'none';
+        if (skillReady) skillReady.style.display = 'block';
+      }
+    }
+
+    // Burst cooldown
+    const burstCooldown = this.container.querySelector('[data-type="burst-cooldown"]') as HTMLDivElement;
+    const burstReady = this.container.querySelector('[data-type="burst-ready"]') as HTMLDivElement;
+
+    if (burstCooldown) {
+      if (this.player.burstCooldown > 0) {
+        burstCooldown.style.display = 'flex';
+        burstCooldown.textContent = Math.ceil(this.player.burstCooldown).toString();
+        if (burstReady) burstReady.style.display = 'none';
+      } else {
+        burstCooldown.style.display = 'none';
+        if (burstReady) burstReady.style.display = 'block';
       }
     }
 
